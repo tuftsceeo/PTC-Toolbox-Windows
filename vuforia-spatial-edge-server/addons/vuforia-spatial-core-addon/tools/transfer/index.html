@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="objectDefaultFiles/object.js"></script>
+    <script src="objectDefaultFiles/pep.min.js"></script>
+    <script src="objectDefaultFiles/envelopeContents.js"></script>
+    <meta charset="UTF-8">
+    <title>transfer</title>
+</head>
+<body style="width: 270px; height: 270px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+    <defs>
+        <style>
+            .cls-1 {
+                opacity: 0.25;
+            }
+            .cls-2 {
+                fill: #00fb00;
+            }
+            .background {
+                fill: black;
+            }
+        </style>
+    </defs>
+    <title>Asset 34</title>
+    <g id="Layer_2" data-name="Layer 2">
+        <g id="UI">
+            <g id="buttonFill" class="cls-1">
+                <polygon class="background" points="75.33 75.33 75.33 4.67 38.34 4.67 4.67 4.67 4.67 38.34 4.67 75.33 75.33 75.33"/>
+            </g>
+            <path class="cls-2" d="M75.33,4.67V75.33H4.67V4.67H75.33M78.67,0H1.33A1.34,1.34,0,0,0,0,1.33V78.67A1.34,1.34,0,0,0,1.33,80H78.67A1.34,1.34,0,0,0,80,78.67V1.33A1.34,1.34,0,0,0,78.67,0Z"/>
+            <g class="cls-1">
+                <path class="cls-2" d="M70.67,9.33V70.67H9.33V9.33H70.67m4.66-4.66H4.67V75.33H75.33V4.67Z"/>
+            </g>
+            <rect class="cls-2" x="36.67" y="20" width="6.67" height="40" transform="translate(80 80) rotate(180)"/>
+        </g>
+    </g>
+</svg>
+<div style="position:relative; top:-60px" id="TEST">     TESTING <br/> 
+
+<script>
+    try {
+        var realityInterface = new RealityInterface();
+        realityInterface.initNode('value', 'node', 0, 0);
+
+        var _envelopeContents = new EnvelopeContents(realityInterface, document.body);
+        realityInterface.setMoveDelay(1000);
+    } catch (e) {
+        console.warn('Reality Interface is not accessible');
+    }
+
+    var num = 0;
+    var test = document.getElementById("TEST");
+    var button = document.querySelector('svg');
+    var buttonFill = document.querySelector('#buttonFill');
+    var screenIsTouched = false;
+
+    var properties = {
+        value: 0,
+        unitMax: 100,
+        unitMin: -100,
+        unit: ""
+    };
+
+
+    function execute(number) {
+        properties.value = number;
+        try {
+            realityInterface.write('value', number);
+        } catch (e) {
+            console.warn('Reality Interface is not accessible');
+        }
+    }
+
+    try {
+        realityInterface.addReadListener('value', function (e) {
+
+            properties.value = e.value;
+            if(e.unit) {
+                properties.unit = e.unit;
+            } else {
+                properties.unit = "";
+            }
+            properties.unitMax = e.unitMax;
+            properties.unitMin = e.unitMin;
+
+            // test.innerHTML = e.value;
+            num = e.value;
+        });
+    } catch (e) {
+        console.warn('Reality Interface is not accessible');
+
+        // test suite for in-browser simulation without loading in AR
+        function mockReadListenerTrigger(e) {
+            properties.value = e;
+        }
+    }
+
+    button.addEventListener("pointerdown", function () {
+        screenIsTouched = true;
+        // execute(0);
+
+        test.innerHTML = parseFloat(num);
+        setInterval(() => { execute(parseFloat(num)); }, 10);
+        button.style.transform = 'scale(1.1)';
+        buttonFill.style.opacity = '0.7';
+
+
+    });
+
+    button.addEventListener("pointerup", function () {
+        screenIsTouched = false;
+        button.style.transform = '';
+        buttonFill.style.opacity = '';
+
+    });
+
+
+
+</script>
+
+</body>
+</html>

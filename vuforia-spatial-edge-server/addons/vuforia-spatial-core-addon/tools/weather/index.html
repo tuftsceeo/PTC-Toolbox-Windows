@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="objectDefaultFiles/object.js"></script>
+    <script src="objectDefaultFiles/pep.min.js"></script>
+    <script src="objectDefaultFiles/envelopeContents.js"></script>
+    <meta charset="UTF-8">
+    <title>label</title>
+    <style>
+        @font-face {
+            font-family: 'Roboto';
+            src: url('resources/roboto.ttf');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Roboto';
+            src: url('resources/roboto-bold.ttf');
+            font-weight: bold;
+            font-style: normal;
+        }
+        #input {
+            position: absolute;
+            left: 25px;
+            top: 80px;
+            display: inline-block;
+            padding: 0;
+            margin: 0;
+            width: 200px;
+            height: 100px;
+            line-height: 283px;
+            text-align: center;
+            vertical-align: middle;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            user-select: text;
+            cursor: pointer;
+            font-family: "Roboto", "Avenir", "Futura", Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-size: 32px;
+            color: #00ff67;
+        }
+
+        #text {
+            position: absolute;
+            left: 120px;
+            top: -70px;
+            display: inline-block;
+            padding: 0;
+            margin: 0;
+            width: 50%;
+            height: 50%;
+            line-height: 200px;
+            text-align: right;
+            vertical-align: middle;
+            font-family: "Roboto", "Avenir", "Futura", Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-size: 28pt;
+            color: #00ff67;
+        }
+        #city {
+            position: absolute;
+            left: 15px;
+            top: -70px;
+            display: inline-block;
+            padding: 0;
+            margin: 0;
+            width: 50%;
+            height: 50%;
+            line-height: 200px;
+            text-align: left;
+            vertical-align: middle;
+            font-family: "Roboto", "Avenir", "Futura", Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-size: 19pt;
+            color: #00ff67;
+        }
+
+        #input:hover {
+            opacity: 0.75;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body style="width: 120%; height: 120%">
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+    <defs>
+        <style>
+            .cls-1 {
+                opacity: 0.5;
+            }
+
+            .cls-2 {
+                fill: #00ff67;
+            }
+        </style>
+    </defs>
+    <title>Asset 40</title>
+    <g id="Layer_2" data-name="Layer 2">
+        <g id="UI">
+            <g>
+                <g class="cls-1">
+                    <polygon points="0 0 0 240 57 240 240 240 240 37 240 0 0 0"/>
+                </g>
+                <g>
+                    <path class="cls-2" d="M194,6V194H6V6H240m6-6H0V240H240V0Z"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
+
+<div id="text">1.000</div>
+<div id="input" contenteditable>Enter Zip</div>
+<img id="image" src="https://openweathermap.org/img/wn/10d@2x.png" style="position: absolute; left: 30px; top: 20px; height: 200px; width: 200px">
+<div id="city">N/A</div>
+
+
+<script>
+
+
+
+    var isListeningForKeyboard = false;
+
+
+    var text = document.querySelector('#text');
+    var properties = {
+        value: 0,
+        unitMax: 135,
+        unitMin: -135,
+        unit: ""
+    };
+
+
+    var input = document.querySelector('#input');
+    var inputLength = input.innerText.length;
+
+
+    try {
+        var realityInterface = new RealityInterface();
+        realityInterface.initNode('value', 'node', 1, 1);
+        realityInterface.initNode('storage', 'storeData');
+
+        var _envelopeContents = new EnvelopeContents(realityInterface, document.body);
+        realityInterface.setMoveDelay(500);
+
+        realityInterface.onKeyboardClosed(function() {
+            isListeningForKeyboard = false; // stop listening once the keyboard closes
+            console.log('reset label frame text selection');
+            renderProperties();
+        });
+
+    } catch (e) {
+        console.warn('Reality Interface is not accessible');
+    }
+
+    input.style.fontSize = (250/inputLength)+"pt";
+
+
+    input.addEventListener("pointerup", function (){
+        if (input.innerText.toLowerCase() === "enter zip") {
+            input.innerText = "";
+        }
+        isListeningForKeyboard = true;
+        realityInterface.openKeyboard();
+    }, false);
+
+    function onKeyUp(e) {
+
+        if (!isListeningForKeyboard) {
+            return;
+        }
+
+        var isCharacter = !!e.key.match(/^[a-zA-Z0-9]$/);
+
+        if (isCharacter) {
+            input.innerText = input.innerText + e.key;
+        } else {
+            if (e.key === "Backspace") {
+                input.innerText = input.innerText.slice(0, -1); // remove last character
+            } else if (e.key === " ") {
+                input.innerText = input.innerText + "\u00a0"; // special space character doesn't get escaped
+                resetScroll();
+                setTimeout(function() {
+                    resetScroll(); // also do it after a slight delay
+                }, 100);
+            }
+        }
+
+        resizeText();
+        realityInterface.writePublicData("storage", "data",  input.innerText);
+    }
+
+    function resizeText() {
+        input.innerText = input.innerText.toUpperCase();
+        
+        var inputLength = input.innerText.length;
+        var fontSize = Math.min(70, (((inputLength*3)+150)/(inputLength))); // font size increases up to 45pt
+        console.log('inputLength ' + inputLength + ' => fontSize' + fontSize);
+        input.style.fontSize = fontSize + "pt";
+    }
+
+    function resetScroll() {
+        if (window.scrollX !== 0 || window.scrollY !== 0) {
+            window.scrollTo(0,0); // don't let keyboard events scroll the window
+        }
+        parent.postMessage(JSON.stringify({resetScroll: true}), '*');
+    }
+
+    try {
+        realityInterface.addReadPublicDataListener('storage', "data", function (e) {
+            if (typeof e === 'string') {
+                input.innerText = e;
+                resizeText();
+            }
+        });
+
+        realityInterface.onKeyUp(onKeyUp);
+
+    } catch (e) {
+        console.warn('Reality Interface is not accessible');
+    }
+
+
+
+    //temp value
+    function scaleVal(number) {
+        return (number * (properties.unitMax - properties.unitMin)) + properties.unitMin;
+    }
+
+    function numberToText(value) {
+        return scaleVal(value).toPrecision(3).substring(0, 6) + " " + properties.unit;
+    }
+
+    function renderProperties()
+    {
+        if (properties.value <= -135) properties.value = -135;
+        if (properties.value >= 135) properties.value = 135;
+        //text.innerText = numberToText(properties.value);
+        // text.innerText = input.innerText;
+        //b6fb6cd636d2c3f44a1f7949ff4febf7
+        var new_url = "https://api.openweathermap.org/data/2.5/weather?zip="+[input.innerText]+",us&appid=5fbfbc42b553a1914b3ba75d8ab862ae";
+        renderTemperature(new_url, text);
+                    //"https://api.openweathermap.org/data/2.5/weather?zip=19050,us&appid=b6fb6cd636d2c3f44a1f7949ff4febf7"
+    }
+
+    function renderTemperature(theUrl, DOM)
+    {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function() { 
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
+                var val = xmlHttp.responseText;
+                val = JSON.parse(val);
+                var temperature = (val.main.temp - 273.15) * (9/5) + 32; // Converting kelvins to fahrenheit
+                DOM.innerText = temperature.toFixed(0) + "\u2109";
+
+                // Getting image
+                var icon = val.weather[0].icon; // Weather is an array, that has 1 element of a JSON object 
+                var img_url = "https://openweathermap.org/img/wn/"+icon+"@2x.png";
+                document.getElementById("image").src = img_url;
+
+                var city = val.name; // This is to get user's city from zipcode
+                document.getElementById("city").innerHTML = city;
+            }
+            else {
+                DOM.innerText = "N/A";
+                document.getElementById("city").innerHTML = "N/A";
+            }
+        }
+        xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+        xmlHttp.send(null);
+    }
+
+
+    function ready() {
+        renderProperties();
+    }
+    ready();
+
+    try {
+        realityInterface.addReadListener('value', function (e) {
+
+            properties.value = 69;
+            if(e.unit) {
+                properties.unit = e.unit;
+            } else {
+                properties.unit = "";
+            }
+            properties.unitMax = e.unitMax;
+            properties.unitMin = e.unitMin;
+            renderProperties();
+        });
+    } catch (e) {
+        console.warn('Reality Interface is not accessible');
+
+        function mockReadListenerTrigger(e) {
+            properties.value = e;
+            renderProperties();
+        }
+    }
+
+
+</script>
+
+</body>
+</html>
