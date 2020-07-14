@@ -1,0 +1,90 @@
+{
+	"objectId": "playButtonZl9kefe5y98c",
+	"name": "playButton",
+	"matrix": [],
+	"isAnchor": false,
+	"ip": "192.168.7.106",
+	"version": "3.2.2",
+	"deactivated": false,
+	"protocol": "R2",
+	"tcs": "37ZeQh",
+	"visible": false,
+	"visibleText": false,
+	"visibleEditing": false,
+	"memory": {},
+	"memoryCameraMatrix": {},
+	"memoryProjectionMatrix": {},
+	"frames": {
+		"playButtonZl9kefe5y98cmusic": {
+			"objectId": "playButtonZl9kefe5y98c",
+			"name": "music",
+			"visualization": "ar",
+			"ar": {
+				"x": 0,
+				"y": 0,
+				"scale": 1,
+				"matrix": []
+			},
+			"screen": {
+				"x": 0,
+				"y": 0,
+				"scale": 1,
+				"matrix": []
+			},
+			"visible": false,
+			"visibleText": false,
+			"visibleEditing": false,
+			"developer": true,
+			"links": {},
+			"nodes": {
+				"playButtonZl9kefe5y98cmusicbutton": {
+					"name": "button",
+					"objectId": "playButtonZl9kefe5y98c",
+					"frameId": "playButtonZl9kefe5y98cmusic",
+					"data": {
+						"value": 0,
+						"mode": "f",
+						"unit": false,
+						"unitMin": 0,
+						"unitMax": 1
+					},
+					"x": 1.138334784598129,
+					"y": -9.55298699659528,
+					"scale": 0.2,
+					"matrix": [],
+					"type": "node",
+					"stress": 0,
+					"privateData": {},
+					"publicData": {},
+					"frameSizeX": 100,
+					"frameSizeY": 100,
+					"processedData": {
+						"value": 0,
+						"mode": "f",
+						"unit": false,
+						"unitMin": 0,
+						"unitMax": 1
+					}
+				}
+			},
+			"location": "local",
+			"src": "editor",
+			"privateData": {},
+			"publicData": {},
+			"staticCopy": false,
+			"distanceScale": 1,
+			"groupID": null
+		}
+	},
+	"framesHistory": {},
+	"visualization": "ar",
+	"zone": "",
+	"targetSize": {
+		"width": 0.2,
+		"height": 0.2
+	},
+	"isWorldObject": false,
+	"timestamp": null,
+	"port": 8080,
+	"developer": true
+}
