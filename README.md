@@ -1,6 +1,6 @@
 # PTC-Toolbox-Windows
 
-*EV3 connection and Laptop connection are not available on Windows yet, but everything else applies*
+*EV3 connection and Laptop connection are not available on Windows yet, but everything else is integrated*
 
 Documentation for our toolbox found here: https://docs.google.com/document/d/10Vy8I2yCTBYPJsHEbj0ly8ThYc4TEttJXFTCyTY63Dw
 
