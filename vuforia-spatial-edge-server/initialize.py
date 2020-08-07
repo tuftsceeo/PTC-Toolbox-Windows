@@ -35,9 +35,10 @@ def read():
     if (distanceSensor != -1):
         exec("print(" + portName[distanceSensor] + ".get_distance_cm())")
     if (forceSensor != -1):
+        #exec("utime.sleep_ms(2)")
         exec("print(" + portName[forceSensor] + ".get_force_percentage()/100)")
     exec("utime.sleep_ms(2)")
-    exec("print(hub.motion.accelerometer())")
+    exec("print(hub.motion.accelerometer() + hub.motion.gyroscope())")
 
 for i in range(10):
     print(portType)

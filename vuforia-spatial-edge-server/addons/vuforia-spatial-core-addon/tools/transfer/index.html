@@ -39,9 +39,12 @@
 <div style="position:relative; top:-60px" id="TEST">     TESTING <br/> 
 
 <script>
+
+    //Purpose: since the values coming from sensor nodes isn't always between 0 and 1, the transfer allows user to use logic blocks and send values from sensor nodes (watch tutorial video for clearer description and visuals)
+
     try {
         var realityInterface = new RealityInterface();
-        realityInterface.initNode('value', 'node', 0, 0);
+        realityInterface.initNode('value', 'node', 0, 0);   //value represents the number coming in
 
         var _envelopeContents = new EnvelopeContents(realityInterface, document.body);
         realityInterface.setMoveDelay(1000);
@@ -62,7 +65,7 @@
         unit: ""
     };
 
-
+    //write number to value if possible
     function execute(number) {
         properties.value = number;
         try {
@@ -72,6 +75,7 @@
         }
     }
 
+    //continuously set num to the number coming into value
     try {
         realityInterface.addReadListener('value', function (e) {
 
@@ -96,6 +100,7 @@
         }
     }
 
+    //when the button is pressed start writing num to value every 10 ms
     button.addEventListener("pointerdown", function () {
         screenIsTouched = true;
         // execute(0);

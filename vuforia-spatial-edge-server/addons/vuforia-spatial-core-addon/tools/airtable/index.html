@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="objectDefaultFiles/object.js"></script>
+    <script src="objectDefaultFiles/pep.min.js"></script>
+    <script src="objectDefaultFiles/envelopeContents.js"></script>
+
+    <meta charset="UTF-8">
+    <title>airtable</title>
+    <style> 
+        /* line 11 - 89 modify stylings for both show/hide and sender/receiver toggles */
+        .switch {  
+          position: relative;
+          display: inline-block;
+          width: 230px;
+          height: 60px;
+        }
+
+        .switch input {display:none;}
+
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ca2222;
+          -webkit-transition: .4s;
+          transition: .4s;
+          width: 230px;
+          height: 60px;
+        }
+
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 40px;
+          width: 40px;
+          left: 10px;
+          bottom: 11px;
+          background-color: white;
+          -webkit-transition: .4s;
+          transition: .4s;
+        }
+
+        input:checked + .slider {
+          background-color: #2ab934;
+        }
+
+        input:focus + .slider {
+          box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+          -webkit-transform: translateX(170px);
+          -ms-transform: translateX(170px);
+          transform: translateX(170px);
+        }
+
+        .on
+        {
+          display: none;
+        }
+
+        .on, .off
+        {
+          color: white;
+          position: absolute;
+          transform: translate(-50%,-50%);
+          top: 50%;
+          left: 50%;
+          font-size: 20px;
+          font-family: Verdana, sans-serif;
+        }
+
+        input:checked+ .slider .on
+        {display: block;}
+
+        input:checked + .slider .off
+        {display: none;}
+
+        /* rounded sliders */
+        .slider.round {
+          border-radius: 34px;
+        }
+
+        .slider.round:before {
+          border-radius: 50%;}
+
+        @font-face {
+            font-family: 'Roboto';
+            src: url('resources/roboto.ttf');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Roboto';
+            src: url('resources/roboto-bold.ttf');
+            font-weight: bold;
+            font-style: normal;
+        }
+        #api_key {
+            cursor: pointer;
+            font-family: "Roboto", "Avenir", "Futura", Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-size: 32px;
+            color: rgb(45,255,255);
+            font-weight: bold;
+            text-align: center;
+            -webkit-text-security: none;
+        }
+        #baseID {
+            cursor: pointer;
+            font-family: "Roboto", "Avenir", "Futura", Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-size: 32px;
+            color: rgb(45,255,255);
+            font-weight: bold;
+            text-align: center;
+            -webkit-text-security: none;
+        }
+        #at_var {
+            cursor: pointer;
+            font-family: "Roboto", "Avenir", "Futura", Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-size: 32px;
+            color: rgb(45,255,255);
+            font-weight: bold;
+            text-align: center;
+            -webkit-text-security: none;
+        }
+        #toggle {
+            cursor: pointer;
+            font-family: "Roboto", "Avenir", "Futura", Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-size: 32px;
+            color: rgb(45,255,255);
+            font-weight: bold;
+            text-align: center;
+            -webkit-text-security: none;
+        }
+        #display {
+            cursor: pointer;
+            font-family: "Roboto", "Avenir", "Futura", Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-size: 32px;
+            color: rgb(45,255,255);
+            font-weight: bold;
+            text-align: center;
+            -webkit-text-security: none;
+        }
+        .boxed {
+            border: 12px solid #14e600;
+            width: 45%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body style="position: relative; width: 200%; height: 300%">
+
+<div class="boxed" id="api_key_box">
+    <div id="api_key" contenteditable>Enter API Key</div>
+</div>
+<br>
+<div class="boxed" id="baseID_box">
+    <div id="baseID" contenteditable>Enter Base ID</div>
+</div>
+<br>
+<div class="boxed">
+    <div id="at_var" contenteditable>Enter Variable</div>
+</div>
+<br>
+
+<!-- toggle for sender/receiver -->
+<div class="switch" style="left: 100px">
+    <input type="checkbox" id="toggle_switch" unchecked>
+    <div class="slider round" id="toggle" contenteditable>
+        <span class="on">SENDER</span>
+        <span class="off">RECEIVER</span>
+    </div>
+</div>
+<br>
+<!-- toggle for show/hide -->
+<div class="switch" style="left: 100px">
+    <input type="checkbox" id="display_switch" unchecked>
+    <div class="slider round" id="display" contenteditable>
+        <span class="on">SHOW</span>
+        <span class="off">HIDE</span>
+    </div>
+</div>
+<br>
+
+<script>
+    // these first three bools are used to help know which box the user
+    // is inputting their information (Ex. Api key, Base ID, or Variable)
+    var first_box = false; 
+    var second_box = false; 
+    var third_box = false; 
+
+    // Global to be used in getvalue 
+    var write_value = 0;
+
+    var isListeningForKeyboard = false;
+
+    var properties = {
+        value: 0,
+        unitMax: 255,
+        unitMin: -255,
+        unit: ""
+    };
+
+    // initializing variables to get user's input
+    // length is also needed to resize text and make responsive 
+    var api_key = document.querySelector('#api_key');
+    var api_key_Length = api_key.innerText.length;
+
+    var baseID = document.querySelector('#baseID');
+    var baseID_Length = baseID.innerText.length;
+
+    var at_var = document.querySelector('#at_var');
+    var at_var_Length = at_var.innerText.length; 
+
+    var saved_api; // global to save api key  
+    var saved_baseID; // global to save base id
+    var saved_atVar; // global to save Airtable Variable  
+
+    // only keep api key and baseID "sensitive", Don't output to AR screen  
+    // bools to help keep information sensitive for UI 
+    var input1 = false; 
+    var input2 = false; 
+
+    // toggle is for sender/receiver
+    var toggle = document.querySelector('#toggle');
+    var toggle_istouched;
+    // display is for show/hide
+    var display = document.querySelector('#display');
+    var display_istouched;
+
+    // added event listeners to change animation for the two different toggles
+    toggle.addEventListener("pointerup", function (){
+        if (!toggle_istouched) {
+            document.getElementById("toggle_switch").checked = true;
+            toggle_istouched = true;  
+        }
+        else if (toggle_istouched) {
+            document.getElementById("toggle_switch").checked = false;
+            toggle_istouched = false;
+        }
+    }, false);
+
+    display.addEventListener("pointerup", function (){
+        if (!display_istouched) {
+            document.getElementById("display_switch").checked = true;
+            display_istouched = true; 
+        }
+        else if (display_istouched) {
+            document.getElementById("display_switch").checked = false;
+            display_istouched = false;
+        }
+    }, false);
+
+
+    try {
+        // initializing new node, this is how you can make new nodes to send multiple values
+        var realityInterface = new RealityInterface();
+        // 0 = x, -25 = y position of the node in the UI 
+        realityInterface.initNode('value', 'node', 0, -10); 
+
+        var _envelopeContents = new EnvelopeContents(realityInterface, document.body);
+        realityInterface.setMoveDelay(500);
+
+        realityInterface.onKeyboardClosed(function() {
+            // stop listening once the keyboard closes
+            isListeningForKeyboard = false; 
+            // if user has put in any value into api key or base id, display "SAVED" 
+            // this helps keeps it "sensitive" if user wants to share their screen
+            if (input1) {
+                api_key.innerText = "SAVED"; 
+            } 
+            if (input2) {
+                baseID.innerText = "SAVED"; 
+            } 
+            console.log('reset label frame text selection');
+            // call renderProperties, this will begin to call the airtable function 
+            renderProperties();
+        });
+
+    } catch (e) {
+        console.warn('Reality Interface is not accessible');
+    }
+
+    api_key.style.fontSize = (250/api_key_Length)+"pt";
+    baseID.style.fontSize = (250/baseID_Length)+"pt";
+    at_var.style.fontSize = (250/at_var_Length)+"pt";
+
+    // creating event listeners to let the user type-in their respective values
+    api_key.addEventListener("pointerup", function (){
+
+        first_box = true; 
+        second_box = false; 
+        third_box = false; 
+        // if user clicks on Enter... clear the text field so they can type
+        if (api_key.innerText === "Enter API Key"){
+            api_key.innerText = "";
+            input1 = true; 
+        }
+        // if user clicks on SAVED... their information will might be erased, so they have to input again
+        if (api_key.innerText === "SAVED"){
+            api_key.innerText = "Sorry, Enter Again";
+            input1 = false; 
+        }
+        // if user runs into the issue above (line 305), they will see Sorry... for 
+        // .8 seconds, and the screen is cleared to let them type it in again
+        if (api_key.innerText === "Sorry, Enter Again"){
+            setTimeout(function(){ api_key.innerText = "";}, 800);
+            input1 = true; 
+
+        }
+
+        isListeningForKeyboard = true;
+        realityInterface.openKeyboard();
+        // saving their api in local storage
+        if ((localStorage.getItem('saved_api').trim()) != null) {
+                api_key.innerText = (localStorage.getItem('saved_api').trim()); 
+            }
+    }, false);
+    // the next two add event listeners follows a similar approach as above
+    baseID.addEventListener("pointerup", function (){
+        second_box = true;
+        first_box = false; 
+        third_box = false; 
+        if (baseID.innerText === "Enter Base ID"){
+            baseID.innerText = "";
+            input2 = true; 
+        }
+        if (baseID.innerText === "SAVED"){
+            baseID.innerText = "Sorry, Enter Again";
+            input2 = false; 
+        }
+        if (baseID.innerText === "Sorry, Enter Again"){
+            setTimeout(function(){ baseID.innerText = "";}, 800);
+            input2 = true; 
+
+        }
+
+        isListeningForKeyboard = true;
+        realityInterface.openKeyboard();
+
+        if ((localStorage.getItem('saved_baseID').trim()) != null) {
+                baseID.innerText = (localStorage.getItem('saved_baseID').trim()); 
+            }
+    }, false);
+    // in this case, SAVED is not displayed so the user can see what variable they are editing 
+    at_var.addEventListener("pointerup", function (){
+        third_box = true;
+        first_box = false; 
+        second_box = false; 
+        if (at_var.innerText === "Enter Variable"){
+            at_var.innerText = "";
+        }
+        isListeningForKeyboard = true;
+        realityInterface.openKeyboard();
+
+        if ((localStorage.getItem('saved_atVar').trim()) != null) {
+                at_var.innerText = (localStorage.getItem('saved_atVar').trim()); 
+            }
+    }, false);
+
+
+    // onKeyUp is what takes in the specifc input values and grabs each character 
+    function onKeyUp(e) {
+
+        if (first_box) {
+
+            if (!isListeningForKeyboard) {
+                return;
+            }
+            // if user's key is a backspace, delete the previous character 
+            if (e.key === "Backspace") {
+                api_key.innerText = api_key.innerText.slice(0, -1); // remove last character
+            } 
+            else if (e.key === " ") {
+                api_key.innerText = api_key.innerText + "\u00a0"; // special space character doesn't get escaped
+                resetScroll();
+                setTimeout(function() {
+                    resetScroll(); // also do it after a slight delay
+                }, 100);
+            } 
+            else if (e.key === "Shift") {
+                api_key.innerText = api_key.innerText; // if the user wants to capitalize a character 
+                resetScroll();
+                setTimeout(function() {
+                    resetScroll(); // also do it after a slight delay
+                }, 100);
+            } 
+            else {
+                api_key.innerText = api_key.innerText + e.key;
+            }
+            // resize the text so it adjusts and is responsive
+            resizeText();
+            // save their input and then use it to keep in the local storage 
+            saved_api = api_key.innerText;
+            // IMPORTANT: This only saves for a "SESSION", if user closes the app it will not save
+            localStorage.setItem('saved_api', api_key.innerText);
+        }
+
+        if (second_box) {
+            
+            if (!isListeningForKeyboard) {
+                return;
+            }
+
+            if (e.key === "Backspace") {
+                baseID.innerText = baseID.innerText.slice(0, -1); // remove last character
+            } 
+            else if (e.key === " ") {
+                baseID.innerText = baseID.innerText + "\u00a0"; // special space character doesn't get escaped
+                resetScroll();
+                setTimeout(function() {
+                    resetScroll(); // also do it after a slight delay
+                }, 100);
+            }
+            else if (e.key === "Shift") {
+                baseID.innerText = baseID.innerText; // if the user wants to capitalize a character
+                resetScroll();
+                setTimeout(function() {
+                    resetScroll(); // also do it after a slight delay
+                }, 100);
+            } 
+            else {
+                baseID.innerText = baseID.innerText + e.key; 
+            }
+
+            resizeText();
+
+            saved_baseID = baseID.innerText;
+            localStorage.setItem('saved_baseID', baseID.innerText);
+        }
+
+        if (third_box) {
+            
+            if (!isListeningForKeyboard) {
+                return;
+            }
+
+            if (e.key === "Backspace") {
+                at_var.innerText = at_var.innerText.slice(0, -1); // remove last character
+            } 
+            else if (e.key === " ") {
+                at_var.innerText = at_var.innerText + "\u00a0"; // special space character doesn't get escaped
+                resetScroll();
+                setTimeout(function() {
+                    resetScroll(); // also do it after a slight delay
+                }, 100);
+            } 
+            else if (e.key === "Shift") {
+                at_var.innerText = at_var.innerText; // if the user wants to capitalize a character
+                resetScroll();
+                setTimeout(function() {
+                    resetScroll(); // also do it after a slight delay
+                }, 100);
+            } 
+            else {
+                at_var.innerText = at_var.innerText + e.key; 
+            }
+
+            resizeText();
+
+            saved_atVar = at_var.innerText;
+            localStorage.setItem('saved_atVar', at_var.innerText);
+        }
+    }
+
+    // Resizes text, change lines 477-479 if you want a different scale
+    function resizeText() {
+        api_key.innerText = api_key.innerText;
+        baseID.innerText = baseID.innerText; 
+        at_var.innerText = at_var.innerText; 
+
+        var api_key_fontSize = Math.min(70, (((api_key_Length*20)+150)/(api_key_Length))); 
+        var baseID_fontSize = Math.min(70, (((baseID_Length*20)+150)/(baseID_Length)));
+        var at_var_fontSize = Math.min(70, (((at_var_Length*20)+150)/(at_var_Length)));
+
+        api_key.style.fontSize = api_key_fontSize + "pt";
+        baseID.style.fontSize = baseID_fontSize + "pt"; 
+        at_var.style.fontSize = at_var_fontSize + "pt";
+    }
+
+    function resetScroll() {
+        if (window.scrollX !== 0 || window.scrollY !== 0) {
+            window.scrollTo(0,0); // don't let keyboard events scroll the window
+        }
+        parent.postMessage(JSON.stringify({resetScroll: true}), '*');
+    }
+
+    // call onKeyUp, the realityInterface.onKeyUp is a built in function, and we pass our
+    // onKeyUp function in it
+    realityInterface.onKeyUp(onKeyUp);
+
+
+    function renderProperties()
+    {
+        if (properties.value <= -255) properties.value = -255;
+        if (properties.value >= 255) properties.value = 255;
+        // setInterval is a built in function that calls airtable over and over with a two second delay
+        // use two seconds to help control lag within the visualization 
+        setInterval(() => { airtable(); }, 2000);
+    }
+
+
+
+
+    // This should be the default for every Airtable 
+    var tablename = "Table 1"; 
+
+    var key = (localStorage.getItem('saved_api').trim());
+    var docID = (localStorage.getItem('saved_baseID').trim());
+    
+    // helper function to make xmlHttp request given a specified 
+    // base id, table, and api key
+    function httpGet(BaseID, tablename, APIKey){
+        APIKey = (localStorage.getItem('saved_api').trim());
+        BaseID = (localStorage.getItem('saved_baseID').trim());;
+
+        var xmlHttp = new XMLHttpRequest();
+        var url = "https://api.airtable.com/v0/" + BaseID + "/" + tablename +"/";
+          
+        xmlHttp.open('GET', url, false);
+        xmlHttp.setRequestHeader('Content-Type','application/json');
+        xmlHttp.setRequestHeader('Authorization',"Bearer " + APIKey);
+          
+        xmlHttp.send();
+        return xmlHttp.responseText;
+    }
+    // used to get the value of whatever variable is passed in
+    // calls httpGet to open the request 
+    function getvalue(name){
+        // the response is an array, so we parse through it looking for the right variable
+        var arr = (JSON.parse(httpGet(docID, tablename, key))).records; 
+        arr.forEach(function (arrayItem) {
+            if (arrayItem.fields.Variables == name) {
+                if ((arrayItem.fields.Value) === 1) { // if value is an int, we convert to float
+                    write_value = parseFloat(arrayItem.fields.Value);
+                } 
+                else{ // else if the value is a string, we just write out the value 
+                    write_value = (arrayItem.fields.Value);
+                }
+                // built in function to allow the node to "write" out to other tools
+                realityInterface.write('value', write_value);
+            }
+        });
+        return;
+    }
+
+    // hold ID to use when sending/updating values 
+    var temp_id; 
+    // helper to get the ID of a given variable from airtable
+    function getid(name) {
+        var arr = (JSON.parse(httpGet(docID, tablename, key))).records; 
+        arr.forEach(function (arrayItem) {
+            if (arrayItem.fields.Variables == name) {
+                temp_id = arrayItem.id; 
+            }
+        });
+    }
+    // xml request to do a patch, which is updating the given variable with a given value on airtable
+    function httpPatch(BaseID, tablename, APIKey, value){
+        APIKey = (localStorage.getItem('saved_api').trim());
+        BaseID = (localStorage.getItem('saved_baseID').trim());;
+
+        var xmlHttp = new XMLHttpRequest();
+        var url = "https://api.airtable.com/v0/" + BaseID + "/" + tablename +"/";
+
+        getid(at_var.innerText);
+        // this is the format for a propvalue to update airtable
+        var propValue ={"records": [{"id": temp_id,"fields": {"Value": value.toString()}}]}
+
+        xmlHttp.open('PATCH', url, true);
+        xmlHttp.setRequestHeader('Content-Type','application/json');
+        xmlHttp.setRequestHeader('Authorization','Bearer ' + APIKey);
+        xmlHttp.onreadystatechange = function() {
+        if(xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                console.log(xmlHttp.responseText);
+            }
+            console.log(xmlHttp.status)
+        };
+        xmlHttp.send(JSON.stringify(propValue));
+    }
+
+    // global variable to send value to airtable
+    // this value is set on line 626
+    var send_val; 
+
+    // airtable makes all of the calls to either send or receive data
+    function airtable(){
+        // If toggle is Sender
+        if (toggle_istouched){
+            httpPatch(docID, tablename, key, send_val);
+            // used to hide or show visualizations depending on what the user sets the 
+            // show/hide toggle to
+            if (display_istouched){
+                document.getElementById("api_key_box").style.display = "none";
+                document.getElementById("baseID_box").style.display = "none";
+            }
+            else if (!display_istouched){
+                document.getElementById("api_key_box").style.display = "block";
+                document.getElementById("baseID_box").style.display = "block";
+            }
+        }
+        // If toggle is Receiver 
+        else if (!toggle_istouched){
+            var temp_var = (at_var.innerText).trim();
+            getvalue(temp_var); 
+
+            if (display_istouched){
+                document.getElementById("api_key_box").style.display = "none";
+                document.getElementById("baseID_box").style.display = "none";
+            }
+            else if (!display_istouched){
+                document.getElementById("api_key_box").style.display = "block";
+                document.getElementById("baseID_box").style.display = "block";
+            }    
+        }
+    }
+
+
+    try {
+        realityInterface.addReadListener('value', function (e) {
+            // send_val is set to whatever is connected to the airtable node
+            // Ex. if you connect the number tool to airtable, send_val equals
+            // whatever is typed into the number tool
+            properties.value = e.value;
+            send_val = e.value; 
+            if(e.unit) {
+                properties.unit = e.unit;
+            } else {
+                properties.unit = "";
+            }
+            properties.unitMax = e.unitMax;
+            properties.unitMin = e.unitMin;
+        });
+    } catch (e) {
+        console.warn('Reality Interface is not accessible');
+
+        function mockReadListenerTrigger(e) {
+            properties.value = e;
+        }
+    }
+
+
+</script>
+</body>
+</html>

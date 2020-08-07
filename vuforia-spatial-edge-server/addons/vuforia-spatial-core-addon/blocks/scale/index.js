@@ -67,7 +67,7 @@ var generalProperties = {
     blockSize: 1,
     privateData: {},
     // these properties are accessible to user modification via the block's settings menu (gui/index.html)
-    publicData: {scale: 1},
+    publicData: {scale: 20},
     // sets which input indices of the block can have links drawn to them
     activeInputs: [true, false, false, false],
     // sets which output indices of the block can have links drawn from them
@@ -96,6 +96,7 @@ exports.render = function (object, frame, node, block, index, thisBlock, callbac
 
     for (var key in thisBlock.data[0]) {
         if (key === 'value') {
+
             console.log(thisBlock.data[0][key]);
             thisBlock.processedData[0][key] = thisBlock.data[0][key] * thisBlock.publicData.scale;
         } else {

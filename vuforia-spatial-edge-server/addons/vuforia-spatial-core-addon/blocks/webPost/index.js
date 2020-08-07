@@ -59,6 +59,30 @@
  * gui/index.html is the optional settings menu that pops up when you tap on the block
  */
 
+var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest; // Need this to use XMLHttpRequest since this is a nodejs file
+const jsdom = require("jsdom"); // Need this to use jsdom and parse html string 
+const { JSDOM } = jsdom; // JSDOM Constructor 
+
+
+function PutInfo(name,val){ 
+    var key = "7f9c8b30-9ae0-43b8-89f1-d796ca1a757c"; 
+    var url = "https://pp-1909111719d4.portal.ptc.io/Thingworx/Things/RealityEngine/Properties/" + name;
+    httpPut(url,key,name,val); 
+}
+
+function httpPut(url,key,name,val){
+    var xmlHttp = new XMLHttpRequest();
+    var propValue = {[name]:val}; 
+    xmlHttp.open("PUT", url, false);
+    xmlHttp.setRequestHeader("AppKey",key);
+    xmlHttp.setRequestHeader("Accept","application/json");
+    xmlHttp.setRequestHeader("Content-Type","application/json");
+    xmlHttp.send(JSON.stringify(propValue));
+}
+
+//change endpointUrl below/url in PutInfo to match your endpoint
+//also change currentEndpointUrl in index.html file
+
 var request = require('request');
 
 
@@ -69,7 +93,7 @@ var generalProperties = {
     blockSize: 1,
     privateData: {},
     // these properties are accessible to user modification via the block's settings menu (gui/index.html)
-    publicData: {endpointUrl: 'http://192.168.1.12:8082/test'},
+    publicData: {endpointUrl: 'toolbox_post'},
     // sets which input indices of the block can have links drawn to them
     activeInputs: [true, false, false, false],
     // sets which output indices of the block can have links drawn from them
@@ -99,24 +123,18 @@ exports.render = function (object, frame, node, block, index, thisBlock, callbac
     // data flows through it like normal
     for (var key in thisBlock.data[index]) {
         thisBlock.processedData[index][key] = thisBlock.data[index][key];
+        //console.log("here: " , thisBlock.processedData[0].value);
     }
 
     // BUT ALSO: makes a post request to the server endpoint configured in publicData
     if (index === 0) {
-
-        console.log('making post request to', thisBlock.publicData);
-
-        request.post(
-            thisBlock.publicData.endpointUrl,
-            { json: {blockData: thisBlock.processedData} },
-            function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    console.log(body);
-                }
-            }
-        );
-
+        console.log('making post request to', thisBlock.generalProperties);
     }
+
+
+    console.log(thisBlock.processedData[0].value);
+    console.log("url: " + thisBlock.publicData.endpointUrl);
+    PutInfo(thisBlock.publicData.endpointUrl, thisBlock.processedData[0].value);
 
     callback(object, frame, node, block, index, thisBlock);
 };
@@ -129,3 +147,4 @@ exports.setup = function (_object, _frame, _node, _block, _thisBlock, _callback)
     // var publicData thisBlock.publicData;
     // callback(object, frame, node, block, index, thisBlock);
 };
+

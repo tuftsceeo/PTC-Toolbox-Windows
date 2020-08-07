@@ -102,7 +102,7 @@ exports.render = function (object, frame, node, block, index, thisBlock, callbac
         sum += thisBlock.data[1].value;
     }
     // constrain sum to 0-1 range
-    sum = Math.max(0, Math.min(1, sum));
+    // sum = Math.max(0, Math.min(1, sum));
 
     for (var key in thisBlock.data[0]) {
         thisBlock.processedData[0][key] = thisBlock.data[0][key];

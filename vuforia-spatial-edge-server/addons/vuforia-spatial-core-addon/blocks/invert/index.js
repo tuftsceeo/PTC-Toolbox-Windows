@@ -92,7 +92,7 @@ exports.properties = generalProperties;
  */
 exports.render = function (object, frame, node, block, index, thisBlock, callback) {
 
-    thisBlock.processedData[0] = thisBlock.data[0].value * -1;
+    thisBlock.processedData[0].value = thisBlock.data[0].value * -1;
     callback(object, frame, node, block, index, thisBlock);
 };
 

@@ -85,9 +85,10 @@
 
     try {
         var realityInterface = new RealityInterface();
-        realityInterface.initNode('value', 'node', 40, -25); // 0 = x, -25 = y position of the node in the UI 
+        // 40 = x, -25 = y position of the node in the UI 
+        realityInterface.initNode('value', 'node', 40, -25); 
         // To create more nodes do: 
-        // realityInterface.initNode('NAME', 'node', X-pos, Y-pos); // Note: keep second value as 'node'
+        // realityInterface.initNode('INSERT-NAME', 'node', X-pos, Y-pos); // Note: keep second value as 'node'
 
         realityInterface.initNode('storage', 'storeData');
 
@@ -106,7 +107,8 @@
 
     input.style.fontSize = (250/inputLength)+"pt";
 
-
+    // adding event listener for input field to let open the keyboard if user wants to type
+    // in their url link
     input.addEventListener("pointerup", function (){
         if (input.innerText === "Enter Url") {
             input.innerText = "";
@@ -115,28 +117,37 @@
         realityInterface.openKeyboard();
     }, false);
 
+    // onKeyUp is what takes in the specifc input values and grabs each character 
     function onKeyUp(e) {
-
         if (!isListeningForKeyboard) {
             return;
         }
-
+        // if user's key is a backspace, delete the previous character 
         if (e.key === "Backspace") {
             input.innerText = input.innerText.slice(0, -1); // remove last character
-        } else if (e.key === " " || e.key === "Shift") {
+        } 
+        else if (e.key === " ") {
             input.innerText = input.innerText + "\u00a0"; // special space character doesn't get escaped
             resetScroll();
             setTimeout(function() {
                 resetScroll(); // also do it after a slight delay
             }, 100);
-        } else {
+        } 
+        else if (e.key === "Shift") {
+            input.innerText = input.innerText; // if the user wants to capitalize a character 
+            resetScroll();
+            setTimeout(function() {
+                resetScroll(); // also do it after a slight delay
+            }, 100);
+        } 
+        else {
             input.innerText = input.innerText + e.key;
         }
 
         resizeText();
         realityInterface.writePublicData("storage", "data",  input.innerText);
     }
-
+    // Resizes text, change lines 477-479 if you want a different scale
     function resizeText() {
         input.innerText = input.innerText;
         
@@ -153,6 +164,7 @@
         parent.postMessage(JSON.stringify({resetScroll: true}), '*');
     }
 
+    // calls onKeyUp, this is where user's input begins to be handled and saved
     try {
         realityInterface.addReadPublicDataListener('storage', "data", function (e) {
             if (typeof e === 'string') {
@@ -172,8 +184,9 @@
         if (properties.value <= -255) properties.value = -255;
         if (properties.value >= 255) properties.value = 255;
 
+        // grab the user's url and send it to api_call
+        // text is the DOM that we will be changing
         var new_url = input.innerText;
-        
         api_call(new_url, text);
     }
 
@@ -184,6 +197,12 @@
         theUrl = theUrl.trim();
 
         // Making API request 
+        // This API request is specific for the ISS (international space station)
+        // To do another api request based on the url, change lines 209-219
+        // Parse your new html link and have display equal what you want to be displayed on the UI 
+        // We recommend that you copy this xml request method on a seperate, local, javascript file
+        // figure out how to correctly parse the request and then adjust it here
+        // This recommendation is made because console.log statements will not work in the tool files  
         var xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = function() { 
             if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
@@ -214,7 +233,7 @@
         xmlHttp.send(null);
     }
 
-
+    // ready calls renderProperties which calls the api function above
     function ready() {
         renderProperties();
     }
@@ -244,6 +263,5 @@
 
 
 </script>
-
 </body>
 </html>

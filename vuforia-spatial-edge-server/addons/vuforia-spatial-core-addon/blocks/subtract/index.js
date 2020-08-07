@@ -49,6 +49,7 @@ exports.render = function (object, frame, node, block, index, thisBlock, callbac
         thisBlock.processedData[0][key] = thisBlock.data[0][key];
     }
 
+    //set output equal to difference
     thisBlock.processedData[0].value = diff;
 
     callback(object, frame, node, block, index, thisBlock);

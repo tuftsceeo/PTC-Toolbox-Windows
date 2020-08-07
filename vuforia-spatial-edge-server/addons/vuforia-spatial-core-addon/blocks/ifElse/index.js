@@ -49,8 +49,11 @@ exports.render = function (object, frame, node, block, index, thisBlock, callbac
         // if the second input receives data, and the toggle is flipped towards true, the block outputs the received input
         if (thisBlock.publicData.toggle === true) {
             thisBlock.processedData[1] = thisBlock.data[1];
-            return callback(object, frame, node, block, index, thisBlock);
         }
+        if (thisBlock.publicData.toggle === false) {
+            thisBlock.processedData[1].value = 0;
+        }
+        return callback(object, frame, node, block, index, thisBlock);
     }
 };
 
